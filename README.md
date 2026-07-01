@@ -82,3 +82,11 @@ python3 predecir.py nuevo_trafico.csv
 Acceder a `https://127.0.0.1:8443` (usuario admin, credenciales generadas por el
 instalador de Wazuh en `wazuh-install-files.tar`). Dashboard "SOC - Monitor de
 Seguridad" importable desde `lab4/dashboard_soc.json` via Saved Objects > Import.
+
+## Nota tecnica - Lab 2
+
+Durante las pruebas se detecto que la regla nativa de Wazuh 5763 (brute force generico, 
+frequency=8/timeframe=120) reinicia el contador de eventos de la regla 5760 antes de que 
+un umbral mas alto (10/60s) pudiera cumplirse. Se ajusto la regla personalizada 100050 a 
+un umbral de 5 intentos en 30 segundos para que dispare de forma independiente y verificable, 
+documentado en el comentario XML de local_rules_ssh.xml.
