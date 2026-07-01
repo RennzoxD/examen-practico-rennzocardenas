@@ -21,7 +21,7 @@
 <group name="local,exfiltration,">
 
   <!-- CAPA 1: transferencia saliente sospechosamente grande -->
-  <rule id="100010" level="8">
+  <rule id="100060" level="8">
     <if_sid>530</if_sid>
     <field name="bytes_out" type="osregex">^\d{9,}$</field>
     <description>Transferencia saliente de gran volumen detectada desde $(srcip)</description>
@@ -29,8 +29,8 @@
   </rule>
 
   <!-- CAPA 2: correlacion con login fuera de horario laboral + volumen > 500MB -->
-  <rule id="100011" level="14" frequency="1" timeframe="3600">
-    <if_matched_sid>100010</if_matched_sid>
+  <rule id="100061" level="14">
+    <if_matched_sid>100060</if_matched_sid>
     <if_matched_sid>5715</if_matched_sid>
     <same_source_ip />
     <time>22:00-06:00</time>

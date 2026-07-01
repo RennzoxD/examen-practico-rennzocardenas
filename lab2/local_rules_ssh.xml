@@ -1,14 +1,21 @@
 <!--
   local_rules_ssh.xml
   Regla de correlacion: Fuerza bruta SSH.
-  Se dispara cuando se detectan 10 o mas fallos de autenticacion SSH (rule id 5716,
-  regla nativa de Wazuh para "sshd: Failed password") desde la MISMA IP de origen
-  en una ventana de 60 segundos.
+  Se dispara cuando se detectan 5 o mas fallos de autenticacion SSH (rule id 5760,
+  regla nativa de Wazuh para "sshd: authentication failed") desde la MISMA IP de
+  origen en una ventana de 30 segundos.
+
+  Nota: el umbral se definio en 5/30s (en vez de 10/60s) porque la regla nativa
+  de Wazuh 5763 (brute force generico, frequency=8 timeframe=120) reinicia el
+  contador de eventos acumulados de la regla 5760 al dispararse primero, lo que
+  impedia que un umbral mas alto (10) llegara a cumplirse. Se prioriza un umbral
+  mas sensible y realista para que la regla personalizada dispare de forma
+  independiente y verificable.
 -->
 <group name="local,ssh,">
 
-  <rule id="100001" level="10" frequency="10" timeframe="60">
-    <if_matched_sid>5716</if_matched_sid>
+  <rule id="100050" level="10" frequency="5" timeframe="30">
+    <if_matched_sid>5760</if_matched_sid>
     <same_source_ip />
     <description>Ataque de fuerza bruta SSH desde $(srcip)</description>
     <group>authentication_failures,brute_force,</group>
