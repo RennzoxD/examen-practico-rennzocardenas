@@ -1,0 +1,4 @@
+Herramienta: Wazuh Dashboard (basado en OpenSearch Dashboards)
+Version: Wazuh 4.9.2
+URL del servicio: https://127.0.0.1:8443 (reenvio de puertos NAT desde VirtualBox)
+Fuente de datos: indice wazuh-alerts-*
