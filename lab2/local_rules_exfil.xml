@@ -1,0 +1,45 @@
+<!--
+  local_rules_exfil.xml
+  Regla de correlacion: Posible exfiltracion de datos.
+
+  Logica de la regla (en dos capas):
+
+  CAPA 1 (regla 100010): detecta una conexion saliente registrada por el firewall
+  con bytes_out > 500000000 (500 MB) desde un host interno (rango 10.0.0.0/8 o
+  192.168.0.0/16). Se asume un decoder previo "firewall-log" que extrae el campo
+  "bytes_out" y "srcip" de la linea de log del firewall, por ejemplo:
+    Jun 14 02:13:00 fw01 firewall: action=ALLOW srcip=10.0.1.55 dstip=8.8.8.8
+    proto=TCP bytes_out=734003200 duration=812
+
+  CAPA 2 (regla 100011): correlaciona la CAPA 1 con un login SSH exitoso PREVIO
+  desde la misma IP interna, ocurrido dentro de la franja horaria 22:00-06:00
+  (fuera de horario laboral), usando la regla nativa 5715 de Wazuh
+  (sshd: Accepted password / Accepted publickey) como condicion "if_matched_sid",
+  y el tag <time> para acotar el horario. Si ambas condiciones se cumplen para
+  la MISMA IP de origen (<same_source_ip/>), se dispara la alerta critica final.
+-->
+<group name="local,exfiltration,">
+
+  <!-- CAPA 1: transferencia saliente sospechosamente grande -->
+  <rule id="100010" level="8">
+    <if_sid>530</if_sid>
+    <field name="bytes_out" type="osregex">^\d{9,}$</field>
+    <description>Transferencia saliente de gran volumen detectada desde $(srcip)</description>
+    <group>data_exfiltration,</group>
+  </rule>
+
+  <!-- CAPA 2: correlacion con login fuera de horario laboral + volumen > 500MB -->
+  <rule id="100011" level="14" frequency="1" timeframe="3600">
+    <if_matched_sid>100010</if_matched_sid>
+    <if_matched_sid>5715</if_matched_sid>
+    <same_source_ip />
+    <time>22:00-06:00</time>
+    <description>CRITICO: Posible exfiltracion de datos desde $(srcip) - transferencia &gt; 500MB tras login fuera de horario laboral</description>
+    <group>data_exfiltration,brute_force,</group>
+    <mitre>
+      <id>T1041</id>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+</group>
